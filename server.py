@@ -1,6 +1,5 @@
 import io
 from threading import Condition
-from contextlib import asynccontextmanager
 from picamera2 import Picamera2
 from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
@@ -66,9 +65,9 @@ async def video_feed():
 
 @app.post("/step")
 def step(x: int = 0, y: int = 0, z: int = 0):
-    stepper_x.motor_run(X_PINS, steps=x)
-    stepper_y.motor_run(Y_PINS, steps=y)
-    stepper_z.motor_run(Z_PINS, steps=z)
+    stepper_x.motor_run(X_PINS, steps=abs(x), ccwise=(x < 0))
+    stepper_y.motor_run(Y_PINS, steps=abs(y), ccwise=(y < 0))
+    stepper_z.motor_run(Z_PINS, steps=abs(z), ccwise=(z < 0))
 
 
 @app.post("/set_light")
