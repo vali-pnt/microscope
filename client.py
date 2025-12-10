@@ -142,11 +142,20 @@ class MainWindow(QMainWindow):
         btn_up.clicked.connect(lambda: self.send_move(0, 100, 0))
         btn_down = QPushButton("Down")
         btn_down.clicked.connect(lambda: self.send_move(0, -100, 0))
+        btn_z_up = QPushButton("Z Up")
+        btn_z_up.clicked.connect(lambda: self.send_move(0, 0, 100))
+        btn_z_down = QPushButton("Z Down")
+        btn_z_down.clicked.connect(lambda: self.send_move(0, 0, -100))
+        btn_capture_still = QPushButton("Capture Still")
+        btn_capture_still.clicked.connect(self.capture_still)
 
         side_layout.addWidget(btn_left)
         side_layout.addWidget(btn_right)
         side_layout.addWidget(btn_up)
         side_layout.addWidget(btn_down)
+        side_layout.addWidget(btn_z_up)
+        side_layout.addWidget(btn_z_down)
+        side_layout.addWidget(btn_capture_still)
 
         splitter1.addWidget(side_panel)
         main_layout.addWidget(splitter1)
@@ -154,14 +163,18 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         key = event.key()
 
-        if key == Qt.Key.Key_Up:
+        if key == Qt.Key.Key_W:
             self.send_move(0, 100, 0)
-        elif key == Qt.Key.Key_Down:
+        elif key == Qt.Key.Key_S:
             self.send_move(0, -100, 0)
-        elif key == Qt.Key.Key_Left:
+        elif key == Qt.Key.Key_A:
             self.send_move(-100, 0, 0)
-        elif key == Qt.Key.Key_Right:
+        elif key == Qt.Key.Key_D:
             self.send_move(100, 0, 0)
+        elif key == Qt.Key.Key_Q:
+            self.send_move(0, 0, 100)
+        elif key == Qt.Key.Key_E:
+            self.send_move(0, 0, -100)
         else:
             super().keyPressEvent(event)
 
@@ -169,9 +182,9 @@ class MainWindow(QMainWindow):
         self.worker = NetworkWorker("POST", f"{URL}/step?x={x}&y={y}&z={z}")
         self.worker.start()
 
-    def fetch_image(self):
+    def capture_still(self):
         try:
-            response = requests.get(IMAGE_URL)
+            response = requests.get(f"{URL}/still")
             response.raise_for_status()
 
             pixmap = QPixmap()
