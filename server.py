@@ -1,4 +1,5 @@
 import io
+import cv2
 from threading import Condition
 from picamera2 import Picamera2
 from picamera2.encoders import JpegEncoder
@@ -38,6 +39,7 @@ class StreamingOutput(io.BufferedIOBase):
 output = StreamingOutput()
 picam2 = Picamera2()
 config = picam2.create_video_configuration(main={"size": (1280, 720)})
+still_config = picam2.create_still_configuration(main={"size": (3280, 2464)})
 picam2.configure(config)
 picam2.start_recording(JpegEncoder(), FileOutput(output))
 
@@ -61,6 +63,21 @@ async def video_feed():
     return StreamingResponse(
         generate_frames(), media_type="multipart/x-mixed-replace; boundary=FRAME"
     )
+
+
+@app.get("/still")
+async def capture_still():
+    picam2.stop_recording()
+    picam2.configure(still_config)
+    picam2.start()
+    buf = picam2.capture_array()
+    picam2.stop()
+    picam2.configure(config)
+    picam2.start_recording(JpegEncoder(), FileOutput(output))
+
+    _, buffer = cv2.imencode(".jpg", buf)
+    io_buf = io.BytesIO(buffer)
+    return StreamingResponse(io_buf, media_type="image/x-exr")
 
 
 @app.post("/step")
